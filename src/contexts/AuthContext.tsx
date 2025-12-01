@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, Profile } from '../lib/supabase';
-import { apiGet, apiPut } from '../lib/api';
+import { apiGet, apiPost, apiPut } from '../lib/api';
 
 // Allow forcing the app to use the backend local auth flow in development.
 const forceLocalAuth = import.meta.env.DEV && import.meta.env.VITE_FORCE_LOCAL_AUTH === 'true';
