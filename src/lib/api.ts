@@ -4,7 +4,24 @@ export async function apiFetch(path: string, opts: RequestInit = {}) {
   // Default to `/api` so calls like `apiPost('/messages')` target `/api/messages`
   // which is proxied by Vite to the backend during development. If you need
   // a different base, set `VITE_API_BASE` in your environment.
-  const base = import.meta.env.VITE_API_BASE ?? '/api';
+  // Determine API base URL:
+  // - Use `VITE_API_BASE` when provided (recommended for deploys)
+  // - Fallback to `/api` for local dev (Vite proxy)
+  // - If running in production (not localhost) and no VITE_API_BASE set,
+  //   default to the hosted backend URL so the frontend still talks to the right server.
+  let base = import.meta.env.VITE_API_BASE ?? '/api';
+  try {
+    if (base === '/api' && typeof window !== 'undefined') {
+      const host = window.location.hostname || '';
+      const isLocal = host.includes('localhost') || host.startsWith('127.') || host === '';
+      if (!isLocal) {
+        // Replace with your production backend URL
+        base = 'https://pdel-backend.onrender.com/api';
+      }
+    }
+  } catch (e) {
+    // ignore and use default
+  }
   const url = base + path;
   // Normalize headers to a Headers object so casing and input types are handled
   const hdrs = new Headers(opts.headers as any || {});
