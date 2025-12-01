@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+// Supabase removed: rely on backend dev token or `VITE_API_BASE`.
 
 export async function apiFetch(path: string, opts: RequestInit = {}) {
   // Default to `/api` so calls like `apiPost('/messages')` target `/api/messages`
@@ -30,26 +30,13 @@ export async function apiFetch(path: string, opts: RequestInit = {}) {
   const isFormData = typeof (opts as any).body !== 'undefined' && (opts as any).body instanceof FormData;
   if (!isFormData && !hdrs.get('content-type')) hdrs.set('Content-Type', 'application/json');
 
-  // Attach Authorization header when possible:
-  // 1) If Supabase is configured and there's an active session, use its access token.
-  // 2) Otherwise, allow a developer token stored in localStorage under `dev_token`.
+  // Attach Authorization header from developer token (format: "dev:<userId>").
+  // The app uses backend-issued dev tokens for auth (no Supabase in production).
   try {
-    if (supabase && typeof supabase.auth?.getSession === 'function') {
-      const { data } = await supabase.auth.getSession();
-      const token = data?.session?.access_token;
-      if (token) {
-        hdrs.set('Authorization', `Bearer ${token}`);
-      }
-    }
+    const dev = (typeof window !== 'undefined') ? localStorage.getItem('dev_token') : null;
+    if (dev && !hdrs.get('authorization')) hdrs.set('Authorization', `Bearer ${dev}`);
   } catch (e) {
-    // ignore
-  }
-
-  // Fall back to developer token for local Mongo mode (format: "dev:<userId>")
-  // Fall back to developer token for local Mongo mode (format: "dev:<userId>")
-  if (!hdrs.get('authorization')) {
-    const dev = localStorage.getItem('dev_token');
-    if (dev) hdrs.set('Authorization', `Bearer ${dev}`);
+    // ignore localStorage failures
   }
 
   // Debug-only: allow forcing the Authorization header from localStorage.dev_token

@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase, Profile } from '../lib/supabase';
 import { apiGet, apiPost, apiPut } from '../lib/api';
+import { Profile } from '../lib/supabase';
+
+// Minimal user shape used by the app when not using Supabase
+type AppUser = { id?: string };
 
 // Allow forcing the app to use the backend local auth flow in development.
 const forceLocalAuth = import.meta.env.DEV && import.meta.env.VITE_FORCE_LOCAL_AUTH === 'true';
@@ -19,61 +21,24 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [preferLocalLogin, setPreferLocalLogin] = useState(false);
 
   useEffect(() => {
-    // In development, ask the backend which DB mode it's running in and use that
-    // to decide whether to initialize Supabase or fall back to local-login.
+    // In development, ask the backend which DB mode it's running in and
+    // initialize backend-only auth flow (no Supabase).
     (async () => {
       try {
-        let backendMode: string | null = null;
-        if (import.meta.env.DEV) {
-          const mres = await apiGet('/auth/mode').catch(() => null);
-          const m = mres ? await mres.json().catch(() => null) : null;
-          if (m && m.data && m.data.db) backendMode = m.data.db;
-          if (backendMode === 'mongo') {
-            setPreferLocalLogin(true);
-          }
-        }
-
-        const effectiveHasSupabase = Boolean(!preferLocalLogin && hasSupabase && backendMode !== 'mongo');
-
-        if (effectiveHasSupabase) {
-          // Initialize Supabase session-based auth
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            setUser(session?.user ?? null);
-            if (session?.user) {
-              fetchProfile(session.user.id);
-            } else {
-              setLoading(false);
-            }
-          });
-
-          const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            (() => {
-              setUser(session?.user ?? null);
-              if (session?.user) {
-                fetchProfile(session.user.id);
-              } else {
-                setProfile(null);
-                setLoading(false);
-              }
-            })();
-          });
-
-          return () => subscription.unsubscribe();
-        }
-
-        // Otherwise use dev token flow / backend local-login
+        // Use backend-only auth: prefer dev_token flow and backend profile.
+        // (No Supabase initialization.)
         const dev = localStorage.getItem('dev_token');
         if (dev && dev.startsWith('dev:')) {
           const res = await apiGet('/profiles/me');
           if (res.ok) {
             const body = await res.json();
-            setUser({ id: body.data.id } as unknown as User);
+            setUser({ id: body.data.id } as AppUser);
             setProfile(body.data as Profile);
           }
         }
@@ -93,14 +58,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const body = await res.json();
         setProfile(body.data);
       } else {
-        // fallback to Supabase client if backend call fails
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
-        if (error) throw error;
-        setProfile(data);
+        // no Supabase fallback; leave profile null on failure
+        setProfile(null);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -110,45 +69,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    // Prevent race: if Supabase is configured but backend mode may prefer local-login,
-    // check backend mode now (only in dev) before calling Supabase.
-    if (hasSupabase && import.meta.env.DEV && !preferLocalLogin) {
-      try {
-        const mres = await apiGet('/auth/mode').catch(() => null);
-        const m = mres ? await mres.json().catch(() => null) : null;
-        if (m && m.data && m.data.db === 'mongo') {
-          setPreferLocalLogin(true);
-        }
-      } catch (e) {
-        // ignore and proceed with Supabase if mode check fails
-      }
-    }
+    // Backend-only flow: call local-login endpoint which returns a dev token
 
-    // Prefer Supabase only when available and not overridden by preferLocalLogin
-    if (hasSupabase && !preferLocalLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      // refresh profile from backend after sign in
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        // Prefer backend profile as source of truth; check email confirmation
-        const me = await apiGet('/profiles/me');
-        if (me.ok) {
-          const mb = await me.json().catch(() => ({}));
-          if (mb.data && mb.data.email_confirmed === false) {
-            // sign out from supabase since email is not confirmed
-            await supabase.auth.signOut();
-            throw new Error('Email not confirmed');
-          }
-          if (mb.data) setProfile(mb.data);
-        } else {
-          await fetchProfile(session.user.id);
-        }
-      }
-      return;
-    }
-
-    // Local dev fallback: call backend local-login endpoint which returns a dev token
     const res = await apiPost('/auth/local-login', { email, password });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -181,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
     // If backend-only/local mode is active, register via backend
-    if ((import.meta.env.DEV && preferLocalLogin) || !hasSupabase) {
+    if ((import.meta.env.DEV && preferLocalLogin) || true) {
       try {
         const res = await apiPost('/auth/register', { email, password, full_name: fullName, phone });
         if (!res.ok) {
