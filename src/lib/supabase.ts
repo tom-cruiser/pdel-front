@@ -1,15 +1,24 @@
-import { createClient } from '@supabase/supabase-js';
+// This file intentionally avoids importing `@supabase/supabase-js` so the
+// frontend can run without that dependency. The app uses the backend API
+// (Mongo) for all runtime operations; this module provides a safe stub for
+// code that previously imported `supabase`.
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// If Supabase env vars are not provided (e.g. using local backend only),
-// provide a lightweight stub so imports don't throw at runtime.
-let _supabase: any;
-if (supabaseUrl && supabaseAnonKey) {
-  _supabase = createClient(supabaseUrl, supabaseAnonKey);
-} else {
-  const chainable = () => {
+const supabase = {
+  auth: {
+    async getSession() {
+      return { data: { session: null } };
+    },
+    onAuthStateChange() {
+      return { unsubscribe: () => {} };
+    },
+    async signIn() {
+      return { error: new Error('Supabase not configured') };
+    },
+    async signOut() {
+      return { error: null };
+    },
+  },
+  from: (_table: string) => {
     const c: any = {
       order: () => c,
       eq: () => c,
@@ -17,27 +26,14 @@ if (supabaseUrl && supabaseAnonKey) {
       update: async () => ({ data: null, error: null }),
       delete: async () => ({ data: null, error: null }),
       insert: async () => ({ data: null, error: null }),
+      maybeSingle: async () => ({ data: null, error: null }),
     };
     return c;
-  };
+  },
+  storage: { from: () => ({ upload: async () => ({ error: 'not configured' }) }) },
+};
 
-  _supabase = {
-    auth: {
-      async getSession() {
-        return { data: { session: null } };
-      },
-      onAuthStateChange() {
-        return { unsubscribe: () => {} };
-      },
-      async signIn() { return { error: new Error('Supabase not configured') }; },
-      async signOut() { return { error: null }; },
-    },
-    from: (_table: string) => chainable(),
-    storage: { from: () => ({ upload: async () => ({ error: 'not configured' }) }) },
-  };
-}
-
-export const supabase = _supabase;
+export { supabase };
 
 export type Profile = {
   id: string;
