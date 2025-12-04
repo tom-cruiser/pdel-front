@@ -9,12 +9,7 @@ import { useTranslation } from "react-i18next";
 export const BookingsPage = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const COACHES: { id: string; name: string }[] = [
-    { id: "c1", name: "Mutika" },
-    { id: "c2", name: "Seif" },
-    { id: "c3", name: "Abdullah" },
-    { id: "c4", name: "Malick" },
-  ];
+  const [coaches, setCoaches] = useState<{ id: string; name: string }[]>([]);
   const [courts, setCourts] = useState<any[]>([]);
   const [selectedCourt, setSelectedCourt] = useState<any | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -29,7 +24,21 @@ export const BookingsPage = () => {
 
   useEffect(() => {
     fetchCourts();
+    fetchCoaches();
   }, []);
+
+  const fetchCoaches = async () => {
+    try {
+      const res = await apiGet('/coaches');
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || 'Failed to fetch coaches');
+      const list = (json.data || []).map((c: any) => ({ id: c._id || c.id, name: c.name }));
+      setCoaches(list);
+    } catch (err) {
+      // Fallback to empty list; frontend previously used hardcoded coaches.
+      console.warn('Failed to load coaches:', err);
+    }
+  };
 
   const fetchCourts = async () => {
     try {
@@ -64,7 +73,7 @@ export const BookingsPage = () => {
       const pad = (n: number) => String(n).padStart(2, "0");
       const endTime = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
 
-      const coach = COACHES.find((c) => c.id === selectedCoachId) || null;
+      const coach = coaches.find((c) => c.id === selectedCoachId) || null;
       const res = await apiPost("/bookings", {
         court_id: selectedCourt.id,
         booking_date: selectedDate,
@@ -203,7 +212,7 @@ export const BookingsPage = () => {
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">No coach</option>
-                    {COACHES.map((c) => (
+                    {coaches.map((c) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
@@ -270,7 +279,7 @@ export const BookingsPage = () => {
                     <p>
                       <span className="font-semibold">Coach:</span>{" "}
                       {(() => {
-                        const coach = COACHES.find((c) => c.id === selectedCoachId);
+                        const coach = coaches.find((c) => c.id === selectedCoachId);
                         return coach ? coach.name : selectedCoachId;
                       })()}
                     </p>
