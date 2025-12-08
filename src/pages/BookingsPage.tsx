@@ -71,21 +71,20 @@ export const BookingsPage = () => {
       start.setHours(hh, mm, 0, 0);
       const end = new Date(start.getTime() + 90 * 60 * 1000);
       const pad = (n: number) => String(n).padStart(2, "0");
-      const endTime = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
+        const endTime = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
 
-<<<<<<< HEAD
-      const coach = coaches.find((c) => c.id === selectedCoachId) || null;
-      const payload: any = {
-        court_id: selectedCourt.id,
-        booking_date: selectedDate,
-        start_time: selectedTime,
-        end_time: endTime,
-        notes: notes || null,
-      };
-      if (selectedCoachId) payload.coach_id = selectedCoachId;
-      if (coach) payload.coach_name = coach.name;
+        const coach = coaches.find((c) => c.id === selectedCoachId) || null;
+        const payload: any = {
+          court_id: selectedCourt.id,
+          booking_date: selectedDate,
+          start_time: selectedTime,
+          end_time: endTime,
+          notes: notes || null,
+        };
+        if (selectedCoachId) payload.coach_id = selectedCoachId;
+        if (coach) payload.coach_name = coach.name;
 
-      const res = await apiPost("/bookings", payload);
+        const res = await apiPost("/bookings", payload);
       if (res.status === 401) {
         // Trigger global UI and give a helpful message
         try {
