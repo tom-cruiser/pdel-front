@@ -102,7 +102,7 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect }
                 key={slot.hour}
                 onClick={() => !disabled && onSelect(time)}
                 disabled={disabled}
-                className={`px-4 py-3 rounded-lg font-medium transition-all text-left ${
+                className={`px-4 py-3 rounded-lg font-medium transition-all text-center ${
                   selectedTime === time
                     ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg scale-105'
                     : disabled
@@ -111,13 +111,6 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect }
                 }`}
               >
                 <div className="text-sm font-semibold">{slot.label}</div>
-                <div className="text-xs text-gray-500">{time} — {(() => {
-                  const [hh, mm] = time.split(':').map(Number);
-                  const start = new Date(); start.setHours(hh, mm, 0, 0);
-                  const end = new Date(start.getTime() + 90 * 60 * 1000);
-                  const pad = (n:number) => String(n).padStart(2,'0');
-                  return `${pad(end.getHours())}:${pad(end.getMinutes())}`;
-                })()}</div>
               </button>
             );
             })}
