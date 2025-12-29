@@ -99,8 +99,10 @@ export const BookingsPage = () => {
         throw new Error("Not authenticated");
       }
       const json = await res.json();
-      if (!json.success)
-        throw new Error(json.message || "Failed to create booking");
+      if (!json.success) {
+        // Display the backend error message which includes cooldown info
+        throw new Error(json.error || json.message || "Failed to create booking");
+      }
 
       setSuccess(true);
       setSelectedTime(null);
@@ -114,9 +116,8 @@ export const BookingsPage = () => {
           "Not signed in — set a dev token (in header) or sign in to continue."
         );
       } else {
-        setError(
-          "Failed to create booking. This time slot may already be taken."
-        );
+        // Show the actual error message from the backend
+        setError(e?.message || "Failed to create booking. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -154,9 +155,12 @@ export const BookingsPage = () => {
         )}
 
         {error && (
-          <div className="mb-8 bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-center space-x-3">
-            <AlertCircle className="w-6 h-6 text-red-600" />
-            <p className="text-red-700">{error}</p>
+          <div className="mb-8 bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start space-x-3">
+            <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-800 mb-1">Booking Failed</p>
+              <p className="text-red-700">{error}</p>
+            </div>
           </div>
         )}
 
