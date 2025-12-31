@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { apiGet, apiPut } from '../lib/api';
+import { apiGet } from '../lib/api';
 import { User, Calendar, CheckCircle, XCircle, Edit } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -54,18 +54,17 @@ export const ProfilePage = () => {
 
     setSaving(true);
     try {
-      // Update profile via backend API
-      const res = await apiPut('/profiles/me', {
-        full_name: fullName,
-        phone: phone || null,
-        updated_at: new Date().toISOString(),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.message || 'Failed to update profile');
-      }
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: fullName,
+          phone: phone || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
       setEditing(false);
-      // refresh profile by reloading page or re-fetching
       window.location.reload();
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -251,18 +250,6 @@ export const ProfilePage = () => {
                                 <span className="font-semibold">Time:</span> {booking.start_time} -{' '}
                                 {booking.end_time}
                               </p>
-                              {booking.membership_status && (
-                                <p>
-                                  <span className="font-semibold">Membership:</span>{' '}
-                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                    booking.membership_status === 'member'
-                                      ? 'bg-blue-100 text-blue-700'
-                                      : 'bg-gray-100 text-gray-700'
-                                  }`}>
-                                    {booking.membership_status === 'member' ? 'Member' : 'Non-Member'}
-                                  </span>
-                                </p>
-                              )}
                             </div>
                           </div>
                         ))}
@@ -311,18 +298,6 @@ export const ProfilePage = () => {
                                 <span className="font-semibold">Time:</span> {booking.start_time} -{' '}
                                 {booking.end_time}
                               </p>
-                              {booking.membership_status && (
-                                <p>
-                                  <span className="font-semibold">Membership:</span>{' '}
-                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                    booking.membership_status === 'member'
-                                      ? 'bg-blue-100 text-blue-700'
-                                      : 'bg-gray-100 text-gray-700'
-                                  }`}>
-                                    {booking.membership_status === 'member' ? 'Member' : 'Non-Member'}
-                                  </span>
-                                </p>
-                              )}
                             </div>
                           </div>
                         ))}

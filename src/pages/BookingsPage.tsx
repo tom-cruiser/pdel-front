@@ -9,7 +9,12 @@ import { useTranslation } from "react-i18next";
 export const BookingsPage = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [coaches, setCoaches] = useState<{ id: string; name: string }[]>([]);
+  const COACHES: { id: string; name: string }[] = [
+    { id: "c1", name: "Mutika" },
+    { id: "c2", name: "Seif" },
+    { id: "c3", name: "Abdullah" },
+    { id: "c4", name: "Malick" },
+  ];
   const [courts, setCourts] = useState<any[]>([]);
   const [selectedCourt, setSelectedCourt] = useState<any | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -18,28 +23,13 @@ export const BookingsPage = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
-  const [membershipStatus, setMembershipStatus] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     fetchCourts();
-    fetchCoaches();
   }, []);
-
-  const fetchCoaches = async () => {
-    try {
-      const res = await apiGet('/coaches');
-      const json = await res.json();
-      if (!json.success) throw new Error(json.message || 'Failed to fetch coaches');
-      const list = (json.data || []).map((c: any) => ({ id: c._id || c.id, name: c.name }));
-      setCoaches(list);
-    } catch (err) {
-      // Fallback to empty list; frontend previously used hardcoded coaches.
-      console.warn('Failed to load coaches:', err);
-    }
-  };
 
   const fetchCourts = async () => {
     try {
@@ -61,11 +51,6 @@ export const BookingsPage = () => {
   const handleBooking = async () => {
     if (!selectedCourt || !selectedTime || !user) return;
 
-    if (!membershipStatus) {
-      setError(t("bookings.membership_required"));
-      return;
-    }
-
     setLoading(true);
     setError("");
     setSuccess(false);
@@ -77,21 +62,18 @@ export const BookingsPage = () => {
       start.setHours(hh, mm, 0, 0);
       const end = new Date(start.getTime() + 90 * 60 * 1000);
       const pad = (n: number) => String(n).padStart(2, "0");
-        const endTime = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
+      const endTime = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
 
-        const coach = coaches.find((c) => c.id === selectedCoachId) || null;
-        const payload: any = {
-          court_id: selectedCourt.id,
-          booking_date: selectedDate,
-          start_time: selectedTime,
-          end_time: endTime,
-          notes: notes || null,
-          membership_status: membershipStatus,
-        };
-        if (selectedCoachId) payload.coach_id = selectedCoachId;
-        if (coach) payload.coach_name = coach.name;
-
-        const res = await apiPost("/bookings", payload);
+      const coach = COACHES.find((c) => c.id === selectedCoachId) || null;
+      const res = await apiPost("/bookings", {
+        court_id: selectedCourt.id,
+        booking_date: selectedDate,
+        start_time: selectedTime,
+        end_time: endTime,
+        notes: notes || null,
+        coach_id: selectedCoachId || null,
+        coach_name: coach ? coach.name : null,
+      });
       if (res.status === 401) {
         // Trigger global UI and give a helpful message
         try {
@@ -106,10 +88,8 @@ export const BookingsPage = () => {
         throw new Error("Not authenticated");
       }
       const json = await res.json();
-      if (!json.success) {
-        // Display the backend error message which includes cooldown info
-        throw new Error(json.error || json.message || "Failed to create booking");
-      }
+      if (!json.success)
+        throw new Error(json.message || "Failed to create booking");
 
       setSuccess(true);
       setSelectedTime(null);
@@ -123,8 +103,9 @@ export const BookingsPage = () => {
           "Not signed in — set a dev token (in header) or sign in to continue."
         );
       } else {
-        // Show the actual error message from the backend
-        setError(e?.message || "Failed to create booking. Please try again.");
+        setError(
+          "Failed to create booking. This time slot may already be taken."
+        );
       }
     } finally {
       setLoading(false);
@@ -162,12 +143,9 @@ export const BookingsPage = () => {
         )}
 
         {error && (
-          <div className="mb-8 bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start space-x-3">
-            <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-red-800 mb-1">Booking Failed</p>
-              <p className="text-red-700">{error}</p>
-            </div>
+          <div className="mb-8 bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-center space-x-3">
+            <AlertCircle className="w-6 h-6 text-red-600" />
+            <p className="text-red-700">{error}</p>
           </div>
         )}
 
@@ -204,56 +182,47 @@ export const BookingsPage = () => {
 
           {selectedCourt && selectedDate && (
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                Optional Coach
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Choose a coach for your session (optional)
+              </p>
+              <div className="mb-6">
+                <label
+                  htmlFor="coach-select"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Choose a coach (optional)
+                </label>
+                <div className="inline-block w-full md:w-1/2">
+                  <select
+                    id="coach-select"
+                    value={selectedCoachId ?? ""}
+                    onChange={(e) => setSelectedCoachId(e.target.value || null)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">No coach</option>
+                    {COACHES.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <TimeSlotPicker
                 courtId={selectedCourt.id}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
                 onSelect={setSelectedTime}
-                selectedCoachId={selectedCoachId}
-                onCoachSelect={setSelectedCoachId}
               />
             </div>
           )}
 
           {selectedTime && (
-            <>
-              {/* Membership Status Selection */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                  {t("bookings.membership_status")} <span className="text-red-500">*</span>
-                </h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  {t("bookings.membership_required")}
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setMembershipStatus("member")}
-                    className={`px-6 py-4 rounded-xl font-medium text-lg transition-all ${
-                      membershipStatus === "member"
-                        ? "bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg scale-105"
-                        : "bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-500 hover:scale-105"
-                    }`}
-                  >
-                    {t("bookings.member")}
-                  </button>
-                  <button
-                    onClick={() => setMembershipStatus("non_member")}
-                    className={`px-6 py-4 rounded-xl font-medium text-lg transition-all ${
-                      membershipStatus === "non_member"
-                        ? "bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg scale-105"
-                        : "bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-500 hover:scale-105"
-                    }`}
-                  >
-                    {t("bookings.non_member")}
-                  </button>
-                </div>
-              </div>
-
-              {/* Additional Notes */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                  {t("bookings.additional_notes")}
-                </h2>
+            <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                {t("bookings.additional_notes")}
+              </h2>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -301,15 +270,9 @@ export const BookingsPage = () => {
                     <p>
                       <span className="font-semibold">Coach:</span>{" "}
                       {(() => {
-                        const coach = coaches.find((c) => c.id === selectedCoachId);
+                        const coach = COACHES.find((c) => c.id === selectedCoachId);
                         return coach ? coach.name : selectedCoachId;
                       })()}
-                    </p>
-                  )}
-                  {membershipStatus && (
-                    <p>
-                      <span className="font-semibold">{t("bookings.membership_status")}:</span>{" "}
-                      {membershipStatus === "member" ? t("bookings.member") : t("bookings.non_member")}
                     </p>
                   )}
                 </div>
@@ -317,7 +280,7 @@ export const BookingsPage = () => {
 
               <button
                 onClick={handleBooking}
-                disabled={loading || !membershipStatus}
+                disabled={loading}
                 className="w-full mt-6 bg-gradient-to-r from-blue-500 to-green-500 text-white py-4 px-6 rounded-xl text-lg font-bold hover:from-blue-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
               >
                 {loading
@@ -325,7 +288,6 @@ export const BookingsPage = () => {
                   : t("bookings.confirm_booking")}
               </button>
             </div>
-            </>
           )}
         </div>
       </div>
