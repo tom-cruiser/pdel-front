@@ -23,6 +23,10 @@ export async function apiFetch(path: string, opts: RequestInit = {}) {
     // ignore and use default
   }
   const url = base + path;
+  
+  // Log the full URL being called for debugging
+  console.log('[API] Request:', opts.method || 'GET', url);
+  
   // Normalize headers to a Headers object so casing and input types are handled
   const hdrs = new Headers(opts.headers as any || {});
   // If body is FormData, do not set a default Content-Type so the browser

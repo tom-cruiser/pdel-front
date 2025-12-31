@@ -16,13 +16,25 @@ export const MessageManagement = () => {
     setLoading(true);
     try {
       const res = await apiGet('/admin/messages');
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok || !json.success) throw new Error(json.message || 'Failed to fetch messages');
+      
+      // Better error handling with status code logging
+      if (!res.ok) {
+        console.error('Failed to fetch messages. Status:', res.status, res.statusText);
+        const text = await res.text();
+        console.error('Response body:', text);
+        throw new Error(`Failed to fetch messages (${res.status}): ${text}`);
+      }
+      
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || 'Failed to fetch messages');
+      
       // Normalize IDs
       const list = (json.data || []).map((m: any) => ({ ...m, id: m._id || m.id }));
       setMessages(list || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      // Show error to user
+      alert(`Error loading messages: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
