@@ -78,11 +78,20 @@ export const GalleryManagement = () => {
     if (!confirm('Are you sure you want to delete this image?')) return;
 
     try {
+      console.log('[GalleryManagement] Attempting to delete image:', imageId);
       const res = await apiFetch(`/admin/gallery/${imageId}`, { method: 'DELETE' });
+      
+      console.log('[GalleryManagement] Delete response status:', res.status);
+      
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        console.error('[GalleryManagement] Delete failed:', body);
         throw new Error(body?.message || body?.error || 'Delete failed');
       }
+      
+      const body = await res.json();
+      console.log('[GalleryManagement] Delete successful:', body);
+      
       fetchImages();
     } catch (error: any) {
       console.error('Error deleting image:', error);
