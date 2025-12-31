@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
 import { apiGet } from '../../lib/api';
-import { Clock } from 'lucide-react';
+import { Clock, Users } from 'lucide-react';
 
 type TimeSlotPickerProps = {
   courtId: string;
   selectedDate: string;
   selectedTime: string | null; // this will store the start time like "07:00"
   onSelect: (time: string) => void;
+  selectedCoachId?: string | null;
+  onCoachSelect?: (coachId: string | null) => void;
+};
+
+type Coach = {
+  _id: string;
+  name: string;
+  specialty?: string;
 };
 
 type Slot = { hour: number; label: string };
@@ -31,12 +39,15 @@ function hourToTimeString(hour: number) {
   return `${pad(h)}:${pad(m)}`;
 }
 
-export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect }: TimeSlotPickerProps) => {
+export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, selectedCoachId, onCoachSelect }: TimeSlotPickerProps) => {
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingCoaches, setLoadingCoaches] = useState(false);
 
   useEffect(() => {
     fetchBookedSlots();
+    fetchCoaches();
   }, [courtId, selectedDate]);
 
   const fetchBookedSlots = async () => {
@@ -73,6 +84,21 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect }
     }
   };
 
+  const fetchCoaches = async () => {
+    setLoadingCoaches(true);
+    try {
+      const res = await apiGet('/coaches');
+      const json = await res.json();
+      if (json.success && json.data) {
+        setCoaches(json.data);
+      }
+    } catch (error) {
+      console.error('Error fetching coaches:', error);
+    } finally {
+      setLoadingCoaches(false);
+    }
+  };
+
   const isSlotBooked = (time: string) => bookedSlots.includes(time);
   const isPastSlot = (time: string) => {
     const now = new Date();
@@ -82,6 +108,33 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect }
 
   return (
     <div className="space-y-4">
+      {/* Coach Selection */}
+      {onCoachSelect && (
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2 text-gray-700">
+            <Users className="w-5 h-5" />
+            <h3 className="text-lg font-semibold">Choisir un coach (optionnel)</h3>
+          </div>
+          {loadingCoaches ? (
+            <div className="text-center py-4 text-gray-500">Chargement des coaches...</div>
+          ) : (
+            <select
+              value={selectedCoachId || ''}
+              onChange={(e) => onCoachSelect(e.target.value || null)}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+            >
+              <option value="">Aucun coach</option>
+              {coaches.map((coach) => (
+                <option key={coach._id} value={coach._id}>
+                  {coach.name} {coach.specialty && `- ${coach.specialty}`}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+
+      {/* Time Slot Selection */}
       <div className="flex items-center space-x-2 text-gray-700">
         <Clock className="w-5 h-5" />
         <h3 className="text-lg font-semibold">Select Time Slot</h3>

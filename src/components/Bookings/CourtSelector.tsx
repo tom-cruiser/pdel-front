@@ -1,5 +1,5 @@
 // Use a generic court shape returned by backend (maps _id to id)
-import { Check } from 'lucide-react';
+import { Check } from "lucide-react";
 
 type CourtSelectorProps = {
   courts: any[];
@@ -7,7 +7,11 @@ type CourtSelectorProps = {
   onSelect: (court: any) => void;
 };
 
-export const CourtSelector = ({ courts, selectedCourt, onSelect }: CourtSelectorProps) => {
+export const CourtSelector = ({
+  courts,
+  selectedCourt,
+  onSelect,
+}: CourtSelectorProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {courts.map((court) => (
@@ -16,13 +20,14 @@ export const CourtSelector = ({ courts, selectedCourt, onSelect }: CourtSelector
           onClick={() => onSelect(court)}
           className={`relative p-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 ${
             selectedCourt?.id === court.id
-              ? 'border-gray-800 shadow-xl'
-              : 'border-gray-200 hover:border-gray-300 shadow-md'
+              ? "border-gray-800 shadow-xl"
+              : "border-gray-200 hover:border-gray-300 shadow-md"
           }`}
           style={{
-            background: selectedCourt?.id === court.id
-              ? `linear-gradient(135deg, ${court.color}15 0%, ${court.color}30 100%)`
-              : 'white',
+            background:
+              selectedCourt?.id === court.id
+                ? `linear-gradient(135deg, ${court.color}15 0%, ${court.color}30 100%)`
+                : "white",
           }}
         >
           {selectedCourt?.id === court.id && (
@@ -42,8 +47,9 @@ export const CourtSelector = ({ courts, selectedCourt, onSelect }: CourtSelector
               {court.name.charAt(0)}
             </div>
             <div className="text-left">
-              <h3 className="text-2xl font-bold text-gray-800">{court.name}</h3>
-              <p className="text-sm text-gray-500">Professional Court</p>
+              <h3 className="text-2xl font-bold text-gray-800">
+                {court.name}Court
+              </h3>
             </div>
           </div>
 

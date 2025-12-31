@@ -197,38 +197,13 @@ export const BookingsPage = () => {
 
           {selectedCourt && selectedDate && (
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                Optional Coach
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Choose a coach for your session (optional)
-              </p>
-              <div className="mb-6">
-                <label
-                  htmlFor="coach-select"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Choose a coach (optional)
-                </label>
-                <div className="inline-block w-full md:w-1/2">
-                  <select
-                    id="coach-select"
-                    value={selectedCoachId ?? ""}
-                    onChange={(e) => setSelectedCoachId(e.target.value || null)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">No coach</option>
-                    {coaches.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
               <TimeSlotPicker
                 courtId={selectedCourt.id}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
                 onSelect={setSelectedTime}
+                selectedCoachId={selectedCoachId}
+                onCoachSelect={setSelectedCoachId}
               />
             </div>
           )}
