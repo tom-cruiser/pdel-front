@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiGet } from '../../lib/api';
 import { Clock, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type TimeSlotPickerProps = {
   courtId: string;
@@ -40,6 +41,7 @@ function hourToTimeString(hour: number) {
 }
 
 export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, selectedCoachId, onCoachSelect }: TimeSlotPickerProps) => {
+  const { t } = useTranslation();
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loading, setLoading] = useState(false);
@@ -113,17 +115,17 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, 
         <div className="space-y-2">
           <div className="flex items-center space-x-2 text-gray-700">
             <Users className="w-5 h-5" />
-            <h3 className="text-lg font-semibold">Choisir un coach (optionnel)</h3>
+            <h3 className="text-lg font-semibold">{t('bookings.choose_coach')}</h3>
           </div>
           {loadingCoaches ? (
-            <div className="text-center py-4 text-gray-500">Chargement des coaches...</div>
+            <div className="text-center py-4 text-gray-500">{t('bookings.loading_coaches')}</div>
           ) : (
             <select
               value={selectedCoachId || ''}
               onChange={(e) => onCoachSelect(e.target.value || null)}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
             >
-              <option value="">Aucun coach</option>
+              <option value="">{t('bookings.no_coach')}</option>
               {coaches.map((coach) => (
                 <option key={coach._id} value={coach._id}>
                   {coach.name} {coach.specialty && `- ${coach.specialty}`}
@@ -137,11 +139,11 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, 
       {/* Time Slot Selection */}
       <div className="flex items-center space-x-2 text-gray-700">
         <Clock className="w-5 h-5" />
-        <h3 className="text-lg font-semibold">Select Time Slot</h3>
+        <h3 className="text-lg font-semibold">{t('bookings.select_time_slot')}</h3>
       </div>
 
       {loading ? (
-        <div className="text-center py-8 text-gray-500">Loading available slots...</div>
+        <div className="text-center py-8 text-gray-500">{t('bookings.loading_slots')}</div>
       ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
             {TIME_SLOTS.map((slot) => {
@@ -174,15 +176,15 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, 
       <div className="flex items-center space-x-6 text-sm">
         <div className="flex items-center space-x-2">
           <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-green-500 rounded"></div>
-          <span className="text-gray-600">Selected</span>
+          <span className="text-gray-600">{t('bookings.legend_selected')}</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-4 h-4 bg-white border-2 border-gray-200 rounded"></div>
-          <span className="text-gray-600">Available</span>
+          <span className="text-gray-600">{t('bookings.legend_available')}</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-4 h-4 bg-gray-100 rounded"></div>
-          <span className="text-gray-600">Unavailable</span>
+          <span className="text-gray-600">{t('bookings.legend_unavailable')}</span>
         </div>
       </div>
     </div>
