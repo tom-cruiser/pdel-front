@@ -18,6 +18,7 @@ export const BookingsPage = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
+  const [membershipStatus, setMembershipStatus] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -60,6 +61,11 @@ export const BookingsPage = () => {
   const handleBooking = async () => {
     if (!selectedCourt || !selectedTime || !user) return;
 
+    if (!membershipStatus) {
+      setError(t("bookings.membership_required"));
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess(false);
@@ -80,6 +86,7 @@ export const BookingsPage = () => {
           start_time: selectedTime,
           end_time: endTime,
           notes: notes || null,
+          membership_status: membershipStatus,
         };
         if (selectedCoachId) payload.coach_id = selectedCoachId;
         if (coach) payload.coach_name = coach.name;
@@ -209,10 +216,44 @@ export const BookingsPage = () => {
           )}
 
           {selectedTime && (
-            <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                {t("bookings.additional_notes")}
-              </h2>
+            <>
+              {/* Membership Status Selection */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  {t("bookings.membership_status")} <span className="text-red-500">*</span>
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  {t("bookings.membership_required")}
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setMembershipStatus("member")}
+                    className={`px-6 py-4 rounded-xl font-medium text-lg transition-all ${
+                      membershipStatus === "member"
+                        ? "bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg scale-105"
+                        : "bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-500 hover:scale-105"
+                    }`}
+                  >
+                    {t("bookings.member")}
+                  </button>
+                  <button
+                    onClick={() => setMembershipStatus("non_member")}
+                    className={`px-6 py-4 rounded-xl font-medium text-lg transition-all ${
+                      membershipStatus === "non_member"
+                        ? "bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg scale-105"
+                        : "bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-500 hover:scale-105"
+                    }`}
+                  >
+                    {t("bookings.non_member")}
+                  </button>
+                </div>
+              </div>
+
+              {/* Additional Notes */}
+              <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                  {t("bookings.additional_notes")}
+                </h2>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -265,12 +306,18 @@ export const BookingsPage = () => {
                       })()}
                     </p>
                   )}
+                  {membershipStatus && (
+                    <p>
+                      <span className="font-semibold">{t("bookings.membership_status")}:</span>{" "}
+                      {membershipStatus === "member" ? t("bookings.member") : t("bookings.non_member")}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <button
                 onClick={handleBooking}
-                disabled={loading}
+                disabled={loading || !membershipStatus}
                 className="w-full mt-6 bg-gradient-to-r from-blue-500 to-green-500 text-white py-4 px-6 rounded-xl text-lg font-bold hover:from-blue-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
               >
                 {loading
@@ -278,6 +325,7 @@ export const BookingsPage = () => {
                   : t("bookings.confirm_booking")}
               </button>
             </div>
+            </>
           )}
         </div>
       </div>
