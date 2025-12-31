@@ -183,6 +183,19 @@ export const BookingManagement = () => {
                     </div>
                   </div>
 
+                  {booking.membership_status && (
+                    <div className="text-sm">
+                      <span className="font-semibold text-gray-600">Membership:</span>{' '}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        booking.membership_status === 'member' 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {booking.membership_status === 'member' ? 'Member' : 'Non-Member'}
+                      </span>
+                    </div>
+                  )}
+
                   {booking.notes && (
                     <div className="text-sm text-gray-600">
                       <span className="font-semibold">Notes:</span> {booking.notes}

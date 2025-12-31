@@ -251,6 +251,18 @@ export const ProfilePage = () => {
                                 <span className="font-semibold">Time:</span> {booking.start_time} -{' '}
                                 {booking.end_time}
                               </p>
+                              {booking.membership_status && (
+                                <p>
+                                  <span className="font-semibold">Membership:</span>{' '}
+                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                    booking.membership_status === 'member'
+                                      ? 'bg-blue-100 text-blue-700'
+                                      : 'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {booking.membership_status === 'member' ? 'Member' : 'Non-Member'}
+                                  </span>
+                                </p>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -299,6 +311,18 @@ export const ProfilePage = () => {
                                 <span className="font-semibold">Time:</span> {booking.start_time} -{' '}
                                 {booking.end_time}
                               </p>
+                              {booking.membership_status && (
+                                <p>
+                                  <span className="font-semibold">Membership:</span>{' '}
+                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                    booking.membership_status === 'member'
+                                      ? 'bg-blue-100 text-blue-700'
+                                      : 'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {booking.membership_status === 'member' ? 'Member' : 'Non-Member'}
+                                  </span>
+                                </p>
+                              )}
                             </div>
                           </div>
                         ))}
