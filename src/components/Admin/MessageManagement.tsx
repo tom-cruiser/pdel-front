@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Mail, MailOpen, Trash2 } from 'lucide-react';
-import { apiGet, apiPut, apiDelete } from '../../lib/api';
+import { apiGet, apiFetch, apiDelete } from '../../lib/api';
 import { Message } from '../../lib/supabase';
 
 export const MessageManagement = () => {
@@ -15,7 +15,7 @@ export const MessageManagement = () => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const res = await apiGet('/messages');
+      const res = await apiGet('/admin/messages');
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.success) throw new Error(json.message || 'Failed to fetch messages');
       // Normalize IDs
@@ -30,7 +30,9 @@ export const MessageManagement = () => {
 
   const handleMarkAsRead = async (messageId: string, isRead: boolean) => {
     try {
-      const res = await apiPut(`/messages/${messageId}`, { is_read: !isRead });
+      const res = await apiFetch(`/admin/messages/${messageId}/read`, { 
+        method: 'PATCH'
+      });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.message || 'Failed to update message');
@@ -45,7 +47,7 @@ export const MessageManagement = () => {
     if (!confirm('Are you sure you want to delete this message?')) return;
 
     try {
-      const res = await apiDelete(`/messages/${messageId}`);
+      const res = await apiDelete(`/admin/messages/${messageId}`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.message || 'Failed to delete message');
