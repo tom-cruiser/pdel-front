@@ -33,6 +33,13 @@ export const GalleryManagement = () => {
       const res = await apiGet('/gallery');
       if (!res.ok) throw new Error('Failed to load gallery');
       const body = await res.json();
+      console.log('[GalleryManagement] Raw API response:', body);
+      console.log('[GalleryManagement] Images data:', body.data);
+      if (body.data && body.data.length > 0) {
+        console.log('[GalleryManagement] First image sample:', body.data[0]);
+        console.log('[GalleryManagement] First image id:', body.data[0].id);
+        console.log('[GalleryManagement] First image _id:', body.data[0]._id);
+      }
       setImages(body.data || []);
     } catch (error) {
       console.error('Error fetching images:', error);
