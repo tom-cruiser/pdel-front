@@ -23,6 +23,7 @@ export const BookingsPage = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
+  const [membershipStatus, setMembershipStatus] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -51,6 +52,12 @@ export const BookingsPage = () => {
   const handleBooking = async () => {
     if (!selectedCourt || !selectedTime || !user) return;
 
+    // Validate membership status
+    if (!membershipStatus) {
+      setError(t("bookings.membership_required"));
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess(false);
@@ -65,7 +72,7 @@ export const BookingsPage = () => {
       const endTime = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
 
       const coach = COACHES.find((c) => c.id === selectedCoachId) || null;
-      const res = await apiPost("/bookings", {
+      const bookingPayload = {
         court_id: selectedCourt.id,
         booking_date: selectedDate,
         start_time: selectedTime,
@@ -73,7 +80,12 @@ export const BookingsPage = () => {
         notes: notes || null,
         coach_id: selectedCoachId || null,
         coach_name: coach ? coach.name : null,
-      });
+        membership_status: membershipStatus,
+      };
+      
+      console.log("Booking payload:", bookingPayload);
+      
+      const res = await apiPost("/bookings", bookingPayload);
       if (res.status === 401) {
         // Trigger global UI and give a helpful message
         try {
@@ -94,14 +106,19 @@ export const BookingsPage = () => {
       setSuccess(true);
       setSelectedTime(null);
       setNotes("");
+      setMembershipStatus("");
 
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
       const e = err as unknown as { message?: string };
+      console.error("Booking error:", e);
       if (e?.message === "Not authenticated") {
         setError(
           "Not signed in — set a dev token (in header) or sign in to continue."
         );
+      } else if (e?.message) {
+        // Show the actual error message from the backend
+        setError(e.message);
       } else {
         setError(
           "Failed to create booking. This time slot may already be taken."
@@ -113,7 +130,7 @@ export const BookingsPage = () => {
   };
 
   const minDate = new Date().toISOString().split("T")[0];
-  const maxDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+  const maxDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split("T")[0];
 
@@ -183,17 +200,17 @@ export const BookingsPage = () => {
           {selectedCourt && selectedDate && (
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                Optional Coach
+                {t("bookings.optional_coach")}
               </h2>
               <p className="text-sm text-gray-600 mb-4">
-                Choose a coach for your session (optional)
+                {t("bookings.choose_coach_description")}
               </p>
               <div className="mb-6">
                 <label
                   htmlFor="coach-select"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Choose a coach (optional)
+                  {t("bookings.choose_coach")}
                 </label>
                 <div className="inline-block w-full md:w-1/2">
                   <select
@@ -202,13 +219,36 @@ export const BookingsPage = () => {
                     onChange={(e) => setSelectedCoachId(e.target.value || null)}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">No coach</option>
+                    <option value="">{t("bookings.no_coach")}</option>
                     {COACHES.map((c) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>
               </div>
+
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 mt-8">
+                {t("bookings.membership_status")}
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                {t("bookings.select_membership")}
+              </p>
+              <div className="mb-6">
+                <div className="inline-block w-full md:w-1/2">
+                  <select
+                    id="membership-select"
+                    value={membershipStatus}
+                    onChange={(e) => setMembershipStatus(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">{t("bookings.select_membership")}</option>
+                    <option value="member">{t("bookings.member")}</option>
+                    <option value="non_member">{t("bookings.non_member")}</option>
+                  </select>
+                </div>
+              </div>
+
               <TimeSlotPicker
                 courtId={selectedCourt.id}
                 selectedDate={selectedDate}
@@ -268,11 +308,17 @@ export const BookingsPage = () => {
                   </p>
                   {selectedCoachId && (
                     <p>
-                      <span className="font-semibold">Coach:</span>{" "}
+                      <span className="font-semibold">{t("bookings.coach_label")}</span>{" "}
                       {(() => {
                         const coach = COACHES.find((c) => c.id === selectedCoachId);
                         return coach ? coach.name : selectedCoachId;
                       })()}
+                    </p>
+                  )}
+                  {membershipStatus && (
+                    <p>
+                      <span className="font-semibold">{t("bookings.membership_status")}:</span>{" "}
+                      {membershipStatus === "member" ? t("bookings.member") : t("bookings.non_member")}
                     </p>
                   )}
                 </div>

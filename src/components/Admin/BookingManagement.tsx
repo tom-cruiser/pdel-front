@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiGet, apiPut, apiDelete } from '../../lib/api';
+import { apiGet, apiPut, apiPatch, apiDelete } from '../../lib/api';
 import { Calendar, Search, Trash2, CheckCircle, XCircle } from 'lucide-react';
 
 export const BookingManagement = () => {
@@ -34,7 +34,7 @@ export const BookingManagement = () => {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
 
     try {
-      const res = await apiPut(`/bookings/${bookingId}`, { status: 'cancelled' });
+      const res = await apiPatch(`/bookings/${bookingId}/cancel`, {});
       const json = await res.json();
       if (!json.success) throw new Error(json.message || 'Failed to cancel booking');
       fetchBookings();
