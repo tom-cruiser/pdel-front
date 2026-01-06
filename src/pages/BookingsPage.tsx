@@ -228,7 +228,7 @@ export const BookingsPage = () => {
               </div>
 
               <h2 className="text-2xl font-bold text-gray-800 mb-4 mt-8">
-                {t("bookings.membership_status")}
+                {t("bookings.membership_status")} <span className="text-red-500">*</span>
               </h2>
               <p className="text-sm text-gray-600 mb-4">
                 {t("bookings.select_membership")}
@@ -239,7 +239,9 @@ export const BookingsPage = () => {
                     id="membership-select"
                     value={membershipStatus}
                     onChange={(e) => setMembershipStatus(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border-2 rounded-xl bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      !membershipStatus ? 'border-red-300' : 'border-gray-200'
+                    }`}
                     required
                   >
                     <option value="">{t("bookings.select_membership")}</option>
@@ -326,7 +328,7 @@ export const BookingsPage = () => {
 
               <button
                 onClick={handleBooking}
-                disabled={loading}
+                disabled={loading || !membershipStatus}
                 className="w-full mt-6 bg-gradient-to-r from-blue-500 to-green-500 text-white py-4 px-6 rounded-xl text-lg font-bold hover:from-blue-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
               >
                 {loading
