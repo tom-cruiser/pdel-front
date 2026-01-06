@@ -5,8 +5,9 @@ import { BookingManagement } from '../components/Admin/BookingManagement';
 import { MessageManagement } from '../components/Admin/MessageManagement';
 import { GalleryManagement } from '../components/Admin/GalleryManagement';
 import { ReportsPanel } from '../components/Admin/ReportsPanel';
+import { UserManagement } from '../components/Admin/UserManagement';
 
-type AdminTab = 'bookings' | 'messages' | 'gallery' | 'reports';
+type AdminTab = 'bookings' | 'messages' | 'gallery' | 'reports' | 'users';
 
 export const AdminPage = () => {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ export const AdminPage = () => {
     { id: 'bookings' as AdminTab, label: 'Bookings', count: null },
     { id: 'messages' as AdminTab, label: 'Messages', count: null },
     { id: 'gallery' as AdminTab, label: 'Gallery', count: null },
+    { id: 'users' as AdminTab, label: 'Users', count: null },
     { id: 'reports' as AdminTab, label: 'Reports', count: null },
   ];
 
@@ -55,6 +57,7 @@ export const AdminPage = () => {
             {activeTab === 'bookings' && <BookingManagement />}
             {activeTab === 'messages' && <MessageManagement />}
             {activeTab === 'gallery' && <GalleryManagement />}
+            {activeTab === 'users' && <UserManagement />}
             {activeTab === 'reports' && <ReportsPanel />}
           </div>
         </div>
