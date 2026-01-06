@@ -175,7 +175,7 @@ export const UserManagement = () => {
                       <div className="flex items-center space-x-3">
                         <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold text-sm">
-                            {(user.full_name || user.email)[0].toUpperCase()}
+                            {((user.full_name || user.email || 'U')[0] || 'U').toUpperCase()}
                           </span>
                         </div>
                         <div>
@@ -184,7 +184,7 @@ export const UserManagement = () => {
                           </p>
                           <p className="text-sm text-gray-500 flex items-center">
                             <Mail className="w-3 h-3 mr-1" />
-                            {user.email}
+                            {user.email || 'No email'}
                           </p>
                         </div>
                       </div>
