@@ -3,6 +3,7 @@ import { LogOut, User, Calendar, Image, MessageSquare, BarChart3 } from 'lucide-
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
+import logo from '../../assets/logo.png';
 
 export const Header = () => {
   const { user, profile, signOut } = useAuth();
@@ -36,8 +37,8 @@ export const Header = () => {
         )}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="bg-gradient-to-br from-blue-500 to-green-500 p-2 rounded-lg">
-              <Calendar className="w-8 h-8 text-white" />
+            <div className="bg-white p-1 rounded-lg">
+              <img src={logo} alt="Padel Court Logo" className="w-12 h-12 object-contain" />
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">

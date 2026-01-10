@@ -41,7 +41,10 @@
     "member": "Member",
     "non_member": "Non-Member",
     "select_membership": "Select membership status",
-    "additional_notes": "Additional Notes (Optional)",
+    "additional_notes": "Additional Notes",
+    "notes_instruction": "You must add your teammates' names in this section",
+    "notes_placeholder": "Add your teammates' names here...",
+    "notes_required": "Please add your teammates' names",
     "booking_summary": "Booking Summary",
     "court_label": "Court:",
     "date_label": "Date:",
@@ -50,7 +53,11 @@
     "confirm_booking": "Confirm Booking",
     "confirming_booking": "Confirming Booking...",
     "booking_confirmed": "Booking Confirmed!",
-    "booking_confirmed_sub": "Your court has been successfully reserved."
+    "booking_confirmed_sub": "Your court has been successfully reserved.",
+    "important_rules": "Important Rules",
+    "non_member_payment_rule": "A non-member must pay before entering the court",
+    "coach_playing_rule": "Coaches cannot play while members need to play",
+    "consecutive_booking_rule": "It is forbidden to book a court twice in a row without having used the first booking"
   },
   "gallery": {
     "title": "Gallery",

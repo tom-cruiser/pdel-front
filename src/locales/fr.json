@@ -41,7 +41,10 @@
     "member": "Membre",
     "non_member": "Non-membre",
     "select_membership": "Sélectionner le statut d'adhésion",
-    "additional_notes": "Notes supplémentaires (facultatif)",
+    "additional_notes": "Notes supplémentaires",
+    "notes_instruction": "Vous devez ajouter les noms de vos coéquipiers dans cette section",
+    "notes_placeholder": "Ajoutez les noms de vos coéquipiers ici...",
+    "notes_required": "Veuillez ajouter les noms de vos coéquipiers",
     "booking_summary": "Résumé de la réservation",
     "court_label": "Court :",
     "date_label": "Date :",
@@ -50,7 +53,11 @@
     "confirm_booking": "Confirmer la réservation",
     "confirming_booking": "Confirmation en cours...",
     "booking_confirmed": "Réservation confirmée !",
-    "booking_confirmed_sub": "Votre court a été réservé avec succès."
+    "booking_confirmed_sub": "Votre court a été réservé avec succès.",
+    "important_rules": "Règles importantes",
+    "non_member_payment_rule": "Un non-membre doit payer avant d'entrer sur le terrain",
+    "coach_playing_rule": "Les coachs ne peuvent pas jouer alors que les membres ont besoin de jouer",
+    "consecutive_booking_rule": "Il est interdit de réserver un terrain deux fois de suite sans avoir consommé la première réservation"
   },
   "gallery": {
     "title": "Galerie",

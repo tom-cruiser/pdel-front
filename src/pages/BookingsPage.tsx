@@ -3,7 +3,7 @@ import { apiGet, apiPost } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { CourtSelector } from "../components/Bookings/CourtSelector";
 import { TimeSlotPicker } from "../components/Bookings/TimeSlotPicker";
-import { Calendar, Check, AlertCircle } from "lucide-react";
+import { Calendar, Check, AlertCircle, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export const BookingsPage = () => {
@@ -55,6 +55,12 @@ export const BookingsPage = () => {
     // Validate membership status
     if (!membershipStatus) {
       setError(t("bookings.membership_required"));
+      return;
+    }
+
+    // Validate notes (teammate names required)
+    if (!notes || notes.trim() === "") {
+      setError(t("bookings.notes_required"));
       return;
     }
 
@@ -166,6 +172,32 @@ export const BookingsPage = () => {
           </div>
         )}
 
+        {/* Important Booking Rules */}
+        <div className="mb-8 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+          <div className="flex items-start space-x-3">
+            <Info className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-bold text-blue-900 mb-3">
+                {t("bookings.important_rules")}
+              </h3>
+              <ul className="space-y-2 text-blue-800">
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{t("bookings.non_member_payment_rule")}</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{t("bookings.coach_playing_rule")}</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{t("bookings.consecutive_booking_rule")}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-8">
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -262,15 +294,21 @@ export const BookingsPage = () => {
 
           {selectedTime && (
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                {t("bookings.additional_notes")}
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                {t("bookings.additional_notes")} <span className="text-red-500">*</span>
               </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                {t("bookings.notes_instruction")}
+              </p>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any special requests or information..."
+                placeholder={t("bookings.notes_placeholder")}
                 rows={4}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none ${
+                  !notes || notes.trim() === '' ? 'border-red-300' : 'border-gray-200'
+                }`}
+                required
               />
 
               <div className="mt-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6">
@@ -328,7 +366,7 @@ export const BookingsPage = () => {
 
               <button
                 onClick={handleBooking}
-                disabled={loading || !membershipStatus}
+                disabled={loading || !membershipStatus || !notes || notes.trim() === ''}
                 className="w-full mt-6 bg-gradient-to-r from-blue-500 to-green-500 text-white py-4 px-6 rounded-xl text-lg font-bold hover:from-blue-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
               >
                 {loading
