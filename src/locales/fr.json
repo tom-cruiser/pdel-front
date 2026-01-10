@@ -57,7 +57,8 @@
     "important_rules": "Règles importantes",
     "non_member_payment_rule": "Un non-membre doit payer avant d'entrer sur le terrain",
     "coach_playing_rule": "Les coachs ne peuvent pas jouer alors que les membres ont besoin de jouer",
-    "consecutive_booking_rule": "Il est interdit de réserver un terrain deux fois de suite sans avoir consommé la première réservation"
+    "consecutive_booking_rule": "Il est interdit de réserver un terrain deux fois de suite sans avoir consommé la première réservation",
+    "cancellation_notice_rule": "La personne ayant réservé un terrain doit informer le club deux heures avant si elle ne peut pas jouer"
   },
   "gallery": {
     "title": "Galerie",

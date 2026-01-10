@@ -57,7 +57,8 @@
     "important_rules": "Important Rules",
     "non_member_payment_rule": "A non-member must pay before entering the court",
     "coach_playing_rule": "Coaches cannot play while members need to play",
-    "consecutive_booking_rule": "It is forbidden to book a court twice in a row without having used the first booking"
+    "consecutive_booking_rule": "It is forbidden to book a court twice in a row without having used the first booking",
+    "cancellation_notice_rule": "The person who booked a court must inform the club two hours in advance if they cannot play"
   },
   "gallery": {
     "title": "Gallery",

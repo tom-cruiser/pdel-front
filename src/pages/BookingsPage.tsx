@@ -193,6 +193,10 @@ export const BookingsPage = () => {
                   <span className="mr-2">•</span>
                   <span>{t("bookings.consecutive_booking_rule")}</span>
                 </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{t("bookings.cancellation_notice_rule")}</span>
+                </li>
               </ul>
             </div>
           </div>
