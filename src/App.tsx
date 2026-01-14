@@ -8,6 +8,7 @@ import { GalleryPage } from './pages/GalleryPage';
 import { ContactPage } from './pages/ContactPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
+import ChatPage from './pages/ChatPage';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ConfirmEmail } from './pages/ConfirmEmail';
 import { ResetPassword } from './pages/ResetPassword';
@@ -47,6 +48,7 @@ function App() {
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/chat" element={<ChatPage />} />
         <Route path="/confirm-email" element={<ConfirmEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route

@@ -1,5 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { LogOut, User, Calendar, Image, MessageSquare, BarChart3 } from 'lucide-react';
+import { LogOut, User, Calendar, Image, MessageSquare, BarChart3, MessageCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
@@ -77,6 +77,16 @@ export const Header = () => {
             >
               <MessageSquare className="w-5 h-5" />
               <span>{t('header.contact')}</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/chat')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
+                isActive('/chat') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span>Chat</span>
             </button>
 
             {profile?.is_admin && (
@@ -164,6 +174,14 @@ export const Header = () => {
             >
               <Image className="w-5 h-5" />
               <span>{t('header.gallery')}</span>
+            <button
+              onClick={() => { setMobileOpen(false); navigate('/chat'); }}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition text-left ${isActive('/chat') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span>Chat</span>
+            </button>
+
             </button>
 
             <button
