@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { apiGet } from '../lib/api';
-import { User, Calendar, CheckCircle, XCircle, Edit } from 'lucide-react';
+import { apiGet, apiPatch } from '../lib/api';
+import { User, Calendar, CheckCircle, XCircle, Edit, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export const ProfilePage = () => {
@@ -13,6 +13,7 @@ export const ProfilePage = () => {
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [phone, setPhone] = useState(profile?.phone || '');
   const [saving, setSaving] = useState(false);
+  const [cancelling, setCancelling] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -71,6 +72,31 @@ export const ProfilePage = () => {
       alert('Failed to update profile');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCancelBooking = async (bookingId: string) => {
+    if (!confirm('Are you sure you want to cancel this booking?')) {
+      return;
+    }
+
+    setCancelling(bookingId);
+    try {
+      const res = await apiPatch(`/bookings/${bookingId}/cancel`, {});
+      const json = await res.json();
+      
+      if (!json.success) {
+        throw new Error(json.message || 'Failed to cancel booking');
+      }
+
+      // Refresh bookings after successful cancellation
+      await fetchUserBookings();
+      alert('Booking cancelled successfully');
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      alert(`Failed to cancel booking: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setCancelling(null);
     }
   };
 
@@ -237,9 +263,23 @@ export const ProfilePage = () => {
                                   {booking.courts?.name}
                                 </span>
                               </div>
-                              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                                Confirmed
-                              </span>
+                              <div className="flex items-center space-x-2">
+                                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                                  Confirmed
+                                </span>
+                                <button
+                                  onClick={() => handleCancelBooking(booking.id)}
+                                  disabled={cancelling === booking.id}
+                                  className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title="Cancel booking"
+                                >
+                                  {cancelling === booking.id ? (
+                                    <span className="text-xs">...</span>
+                                  ) : (
+                                    <X className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
                             </div>
                             <div className="text-sm text-gray-600">
                               <p>
