@@ -88,9 +88,9 @@ export const BookingsPage = () => {
         coach_name: coach ? coach.name : null,
         membership_status: membershipStatus,
       };
-      
+
       console.log("Booking payload:", bookingPayload);
-      
+
       const res = await apiPost("/bookings", bookingPayload);
       if (res.status === 401) {
         // Trigger global UI and give a helpful message
@@ -136,7 +136,7 @@ export const BookingsPage = () => {
   };
 
   const minDate = new Date().toISOString().split("T")[0];
-  const maxDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+  const maxDate = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split("T")[0];
 
@@ -257,14 +257,17 @@ export const BookingsPage = () => {
                   >
                     <option value="">{t("bookings.no_coach")}</option>
                     {COACHES.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
 
               <h2 className="text-2xl font-bold text-gray-800 mb-4 mt-8">
-                {t("bookings.membership_status")} <span className="text-red-500">*</span>
+                {t("bookings.membership_status")}{" "}
+                <span className="text-red-500">*</span>
               </h2>
               <p className="text-sm text-gray-600 mb-4">
                 {t("bookings.select_membership")}
@@ -276,13 +279,15 @@ export const BookingsPage = () => {
                     value={membershipStatus}
                     onChange={(e) => setMembershipStatus(e.target.value)}
                     className={`w-full px-4 py-3 border-2 rounded-xl bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      !membershipStatus ? 'border-red-300' : 'border-gray-200'
+                      !membershipStatus ? "border-red-300" : "border-gray-200"
                     }`}
                     required
                   >
                     <option value="">{t("bookings.select_membership")}</option>
                     <option value="member">{t("bookings.member")}</option>
-                    <option value="non_member">{t("bookings.non_member")}</option>
+                    <option value="non_member">
+                      {t("bookings.non_member")}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -299,7 +304,8 @@ export const BookingsPage = () => {
           {selectedTime && (
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fadeIn">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                {t("bookings.additional_notes")} <span className="text-red-500">*</span>
+                {t("bookings.additional_notes")}{" "}
+                <span className="text-red-500">*</span>
               </h2>
               <p className="text-sm text-gray-600 mb-4">
                 {t("bookings.notes_instruction")}
@@ -310,7 +316,9 @@ export const BookingsPage = () => {
                 placeholder={t("bookings.notes_placeholder")}
                 rows={4}
                 className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none ${
-                  !notes || notes.trim() === '' ? 'border-red-300' : 'border-gray-200'
+                  !notes || notes.trim() === ""
+                    ? "border-red-300"
+                    : "border-gray-200"
                 }`}
                 required
               />
@@ -352,17 +360,25 @@ export const BookingsPage = () => {
                   </p>
                   {selectedCoachId && (
                     <p>
-                      <span className="font-semibold">{t("bookings.coach_label")}</span>{" "}
+                      <span className="font-semibold">
+                        {t("bookings.coach_label")}
+                      </span>{" "}
                       {(() => {
-                        const coach = COACHES.find((c) => c.id === selectedCoachId);
+                        const coach = COACHES.find(
+                          (c) => c.id === selectedCoachId
+                        );
                         return coach ? coach.name : selectedCoachId;
                       })()}
                     </p>
                   )}
                   {membershipStatus && (
                     <p>
-                      <span className="font-semibold">{t("bookings.membership_status")}:</span>{" "}
-                      {membershipStatus === "member" ? t("bookings.member") : t("bookings.non_member")}
+                      <span className="font-semibold">
+                        {t("bookings.membership_status")}:
+                      </span>{" "}
+                      {membershipStatus === "member"
+                        ? t("bookings.member")
+                        : t("bookings.non_member")}
                     </p>
                   )}
                 </div>
@@ -370,7 +386,9 @@ export const BookingsPage = () => {
 
               <button
                 onClick={handleBooking}
-                disabled={loading || !membershipStatus || !notes || notes.trim() === ''}
+                disabled={
+                  loading || !membershipStatus || !notes || notes.trim() === ""
+                }
                 className="w-full mt-6 bg-gradient-to-r from-blue-500 to-green-500 text-white py-4 px-6 rounded-xl text-lg font-bold hover:from-blue-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
               >
                 {loading
