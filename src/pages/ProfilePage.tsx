@@ -270,13 +270,13 @@ export const ProfilePage = () => {
                                 <button
                                   onClick={() => handleCancelBooking(booking.id)}
                                   disabled={cancelling === booking.id}
-                                  className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                                   title="Cancel booking"
                                 >
                                   {cancelling === booking.id ? (
                                     <span className="text-xs">...</span>
                                   ) : (
-                                    <X className="w-4 h-4" />
+                                    <X className="w-3.5 h-3.5" />
                                   )}
                                 </button>
                               </div>
