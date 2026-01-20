@@ -136,7 +136,7 @@ export const BookingsPage = () => {
   };
 
   const minDate = new Date().toISOString().split("T")[0];
-  const maxDate = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000)
+  const maxDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split("T")[0];
 
