@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 type TimeSlotPickerProps = {
   courtId: string;
-  selectedDate: string;
+  selectedDate: Date | null;
   selectedTime: string | null; // this will store the start time like "07:00"
   onSelect: (time: string) => void;
   selectedCoachId?: string | null;
@@ -53,9 +53,12 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, 
   }, [courtId, selectedDate]);
 
   const fetchBookedSlots = async () => {
+    if (!selectedDate) return;
+    
+    const dateString = selectedDate.toISOString().split('T')[0];
     setLoading(true);
     try {
-      const res = await apiGet(`/bookings/availability?court_id=${encodeURIComponent(courtId)}&date=${encodeURIComponent(selectedDate)}`);
+      const res = await apiGet(`/bookings/availability?court_id=${encodeURIComponent(courtId)}&date=${encodeURIComponent(dateString)}`);
       const json = await res.json();
       if (!json.success) throw new Error(json.message || 'Failed to fetch bookings');
 
@@ -65,12 +68,12 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, 
 
       for (const slot of TIME_SLOTS) {
         const slotTime = hourToTimeString(slot.hour);
-        const slotStart = new Date(`${selectedDate}T${slotTime}`);
+        const slotStart = new Date(`${dateString}T${slotTime}`);
         const slotEnd = new Date(slotStart.getTime() + 90 * 60 * 1000);
 
         const overlaps = bookings.some((bk) => {
-          const bStart = new Date(`${selectedDate}T${bk.start}`);
-          const bEnd = new Date(`${selectedDate}T${bk.end}`);
+          const bStart = new Date(`${dateString}T${bk.start}`);
+          const bEnd = new Date(`${dateString}T${bk.end}`);
           // overlap if slotStart < bEnd && slotEnd > bStart
           return slotStart < bEnd && slotEnd > bStart;
         });

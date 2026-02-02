@@ -5,6 +5,8 @@ import { CourtSelector } from "../components/Bookings/CourtSelector";
 import { TimeSlotPicker } from "../components/Bookings/TimeSlotPicker";
 import { Calendar, Check, AlertCircle, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export const BookingsPage = () => {
   const { user } = useAuth();
@@ -17,9 +19,7 @@ export const BookingsPage = () => {
   ];
   const [courts, setCourts] = useState<any[]>([]);
   const [selectedCourt, setSelectedCourt] = useState<any | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
@@ -80,7 +80,7 @@ export const BookingsPage = () => {
       const coach = COACHES.find((c) => c.id === selectedCoachId) || null;
       const bookingPayload = {
         court_id: selectedCourt.id,
-        booking_date: selectedDate,
+        booking_date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
         start_time: selectedTime,
         end_time: endTime,
         notes: notes || null,
@@ -135,10 +135,8 @@ export const BookingsPage = () => {
     }
   };
 
-  const minDate = new Date().toISOString().split("T")[0];
-  const maxDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0];
+  const minDate = new Date();
+  const maxDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-12">
@@ -219,16 +217,18 @@ export const BookingsPage = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
                 {t("bookings.select_date")}
               </h2>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => {
-                  setSelectedDate(e.target.value);
+              <DatePicker
+                selected={selectedDate}
+                onChange={(date: Date | null) => {
+                  setSelectedDate(date);
                   setSelectedTime(null);
                 }}
-                min={minDate}
-                max={maxDate}
+                minDate={minDate}
+                maxDate={maxDate}
+                dateFormat="MMMM d, yyyy"
                 className="w-full md:w-auto px-6 py-4 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                placeholderText="Select a date"
+                inline
               />
             </div>
           )}
