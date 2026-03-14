@@ -21,7 +21,12 @@ export const ReportsPanel = () => {
       const res = await apiGet('/admin/bookings');
       const json = await res.json();
       if (!json.success) throw new Error(json.message || 'Failed to fetch bookings');
-      const list = (json.data || []).map((b: any) => ({ ...b, id: b._id || b.id }));
+      const rawBookings = Array.isArray(json.data)
+        ? json.data
+        : Array.isArray(json.data?.bookings)
+          ? json.data.bookings
+          : [];
+      const list = rawBookings.map((b: any) => ({ ...b, id: b._id || b.id }));
       setBookings(list || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
