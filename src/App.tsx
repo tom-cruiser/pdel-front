@@ -9,13 +9,15 @@ import { ContactPage } from './pages/ContactPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 import ChatPage from './pages/ChatPage';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ConfirmEmail } from './pages/ConfirmEmail';
 import { ResetPassword } from './pages/ResetPassword';
+import { PublicNotePage } from './pages/PublicNotePage';
 
 function App() {
   const { user, profile, loading } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -29,6 +31,15 @@ function App() {
   }
 
   if (!user) {
+    if (location.pathname === '/note') {
+      return (
+        <Routes>
+          <Route path="/note" element={<PublicNotePage />} />
+          <Route path="*" element={<Navigate to="/note" replace />} />
+        </Routes>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center p-4">
         {showLogin ? (
@@ -49,6 +60,7 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/chat" element={<ChatPage />} />
+        <Route path="/note" element={<PublicNotePage />} />
         <Route path="/confirm-email" element={<ConfirmEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route

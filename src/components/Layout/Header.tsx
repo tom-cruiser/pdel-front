@@ -1,5 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { LogOut, User, Calendar, Image, MessageSquare, BarChart3, MessageCircle } from 'lucide-react';
+import { LogOut, User, Calendar, Image, MessageSquare, BarChart3, MessageCircle, Megaphone } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useRef } from 'react';
@@ -18,7 +18,7 @@ export const Header = () => {
   const [unauthMsg, setUnauthMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    const h = (e: any) => {
+    const h = () => {
       setUnauthMsg("Not signed in — set a dev token or sign in to continue.");
       // clear banner after a while
       setTimeout(() => setUnauthMsg(null), 6000);
@@ -87,6 +87,16 @@ export const Header = () => {
             >
               <MessageCircle className="w-5 h-5" />
               <span>Chat</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/note')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
+                isActive('/note') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Megaphone className="w-5 h-5" />
+              <span>{t('header.note')}</span>
             </button>
 
             {profile?.is_admin && (
@@ -174,14 +184,6 @@ export const Header = () => {
             >
               <Image className="w-5 h-5" />
               <span>{t('header.gallery')}</span>
-            <button
-              onClick={() => { setMobileOpen(false); navigate('/chat'); }}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition text-left ${isActive('/chat') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
-            >
-              <MessageCircle className="w-5 h-5" />
-              <span>Chat</span>
-            </button>
-
             </button>
 
             <button
@@ -190,6 +192,22 @@ export const Header = () => {
             >
               <MessageSquare className="w-5 h-5" />
               <span>{t('header.contact')}</span>
+            </button>
+
+            <button
+              onClick={() => { setMobileOpen(false); navigate('/chat'); }}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition text-left ${isActive('/chat') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span>Chat</span>
+            </button>
+
+            <button
+              onClick={() => { setMobileOpen(false); navigate('/note'); }}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition text-left ${isActive('/note') ? 'bg-blue-100 text-blue-600 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+            >
+              <Megaphone className="w-5 h-5" />
+              <span>{t('header.note')}</span>
             </button>
 
             {profile?.is_admin && (

@@ -3,10 +3,14 @@ import { apiGet, apiPost } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { CourtSelector } from "../components/Bookings/CourtSelector";
 import { TimeSlotPicker } from "../components/Bookings/TimeSlotPicker";
-import { Calendar, Check, AlertCircle, Info } from "lucide-react";
+import { Calendar, Check, AlertCircle, Info, Megaphone } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+
+type PublicNote = {
+  title?: string;
+  content?: string;
+  updated_at?: string;
+};
 
 export const BookingsPage = () => {
   const { user } = useAuth();
@@ -19,7 +23,9 @@ export const BookingsPage = () => {
   ];
   const [courts, setCourts] = useState<any[]>([]);
   const [selectedCourt, setSelectedCourt] = useState<any | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().split("T")[0],
+  );
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
@@ -27,10 +33,24 @@ export const BookingsPage = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [publicNote, setPublicNote] = useState<PublicNote | null>(null);
 
   useEffect(() => {
     fetchCourts();
+    fetchPublicNote();
   }, []);
+
+  const fetchPublicNote = async () => {
+    try {
+      const res = await apiGet('/note');
+      const json = await res.json();
+      if (!res.ok || !json.success) return;
+      setPublicNote(json.data || null);
+    } catch {
+      // Keep bookings page functional even if note loading fails.
+      setPublicNote(null);
+    }
+  };
 
   const fetchCourts = async () => {
     try {
@@ -80,7 +100,7 @@ export const BookingsPage = () => {
       const coach = COACHES.find((c) => c.id === selectedCoachId) || null;
       const bookingPayload = {
         court_id: selectedCourt.id,
-        booking_date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+        booking_date: selectedDate,
         start_time: selectedTime,
         end_time: endTime,
         notes: notes || null,
@@ -98,7 +118,7 @@ export const BookingsPage = () => {
           window.dispatchEvent(
             new CustomEvent("api:unauthorized", {
               detail: { path: "bookings" },
-            })
+            }),
           );
         } catch {
           void 0;
@@ -120,14 +140,14 @@ export const BookingsPage = () => {
       console.error("Booking error:", e);
       if (e?.message === "Not authenticated") {
         setError(
-          "Not signed in — set a dev token (in header) or sign in to continue."
+          "Not signed in — set a dev token (in header) or sign in to continue.",
         );
       } else if (e?.message) {
         // Show the actual error message from the backend
         setError(e.message);
       } else {
         setError(
-          "Failed to create booking. This time slot may already be taken."
+          "Failed to create booking. This time slot may already be taken.",
         );
       }
     } finally {
@@ -135,8 +155,10 @@ export const BookingsPage = () => {
     }
   };
 
-  const minDate = new Date();
-  const maxDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);
+  const minDate = new Date().toISOString().split("T")[0];
+  const maxDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-12">
@@ -150,6 +172,27 @@ export const BookingsPage = () => {
           </h1>
           <p className="text-xl text-gray-600">{t("bookings.subtitle")}</p>
         </div>
+
+        {publicNote?.content && (
+          <div className="mb-8 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 p-5">
+            <div className="flex items-start gap-3">
+              <Megaphone className="w-5 h-5 text-amber-600 mt-0.5" />
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-amber-900 mb-1">
+                  {publicNote.title || 'Club Note'}
+                </h2>
+                <p className="text-amber-800 whitespace-pre-wrap leading-relaxed">
+                  {publicNote.content}
+                </p>
+                {publicNote.updated_at && (
+                  <p className="text-xs text-amber-700/80 mt-2">
+                    Updated: {new Date(publicNote.updated_at).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {success && (
           <div className="mb-8 bg-green-50 border-2 border-green-200 rounded-xl p-4 flex items-center space-x-3 animate-pulse">
@@ -217,18 +260,16 @@ export const BookingsPage = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
                 {t("bookings.select_date")}
               </h2>
-              <DatePicker
-                selected={selectedDate}
-                onChange={(date: Date | null) => {
-                  setSelectedDate(date);
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => {
+                  setSelectedDate(e.target.value);
                   setSelectedTime(null);
                 }}
-                minDate={minDate}
-                maxDate={maxDate}
-                dateFormat="MMMM d, yyyy"
+                min={minDate}
+                max={maxDate}
                 className="w-full md:w-auto px-6 py-4 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                placeholderText="Select a date"
-                inline
               />
             </div>
           )}
@@ -354,7 +395,7 @@ export const BookingsPage = () => {
                       const end = new Date(start.getTime() + 90 * 60 * 1000);
                       return `${String(end.getHours()).padStart(
                         2,
-                        "0"
+                        "0",
                       )}:${String(end.getMinutes()).padStart(2, "0")}`;
                     })()}
                   </p>
@@ -365,7 +406,7 @@ export const BookingsPage = () => {
                       </span>{" "}
                       {(() => {
                         const coach = COACHES.find(
-                          (c) => c.id === selectedCoachId
+                          (c) => c.id === selectedCoachId,
                         );
                         return coach ? coach.name : selectedCoachId;
                       })()}
