@@ -6,22 +6,8 @@ export async function apiFetch(path: string, opts: RequestInit = {}) {
   // a different base, set `VITE_API_BASE` in your environment.
   // Determine API base URL:
   // - Use `VITE_API_BASE` when provided (recommended for deploys)
-  // - Fallback to `/api` for local dev (Vite proxy)
-  // - If running in production (not localhost) and no VITE_API_BASE set,
-  //   default to the hosted backend URL so the frontend still talks to the right server.
+  // - Fallback to `/api` so local Vite proxy or same-origin reverse proxy can handle routing.
   let base = import.meta.env.VITE_API_BASE ?? '/api';
-  try {
-    if (base === '/api' && typeof window !== 'undefined') {
-      const host = window.location.hostname || '';
-      const isLocal = host.includes('localhost') || host.startsWith('127.') || host === '';
-      if (!isLocal) {
-        // Replace with your production backend URL
-        base = 'https://jdbackend-production-18d7.up.railway.app/api';
-      }
-    }
-  } catch (e) {
-    // ignore and use default
-  }
   const url = base + path;
   
   // Log the full URL being called for debugging
