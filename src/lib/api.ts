@@ -7,8 +7,23 @@ export async function apiFetch(path: string, opts: RequestInit = {}) {
   // Determine API base URL:
   // - Use `VITE_API_BASE` when provided (recommended for deploys)
   // - Fallback to `/api` so local Vite proxy or same-origin reverse proxy can handle routing.
-  let base = import.meta.env.VITE_API_BASE ?? '/api';
-  const url = base + path;
+  let base = import.meta.env.VITE_API_BASE;
+
+  // Production fallback for the Render frontend domain when env vars are missing.
+  if (!base) {
+    if (
+      typeof window !== 'undefined' &&
+      window.location.hostname === 'jdfrontend.onrender.com'
+    ) {
+      base = 'https://jdbackend-production-18d7.up.railway.app/api';
+    } else {
+      base = '/api';
+    }
+  }
+
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const url = normalizedBase + normalizedPath;
   
   // Log the full URL being called for debugging
   console.log('[API] Request:', opts.method || 'GET', url);
