@@ -30,6 +30,7 @@ export const BookingsPage = () => {
   const [notes, setNotes] = useState("");
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
   const [membershipStatus, setMembershipStatus] = useState<string>("");
+  const [slotRefreshSignal, setSlotRefreshSignal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -126,8 +127,13 @@ export const BookingsPage = () => {
         throw new Error("Not authenticated");
       }
       const json = await res.json();
-      if (!json.success)
+      if (!res.ok || !json.success) {
+        if (res.status === 409) {
+          setSelectedTime(null);
+          setSlotRefreshSignal((v) => v + 1);
+        }
         throw new Error(json.message || "Failed to create booking");
+      }
 
       setSuccess(true);
       setSelectedTime(null);
@@ -144,7 +150,11 @@ export const BookingsPage = () => {
         );
       } else if (e?.message) {
         // Show the actual error message from the backend
-        setError(e.message);
+        if (e.message.toLowerCase().includes("time slot not available")) {
+          setError("Time slot not available. Availability was refreshed, please choose another slot.");
+        } else {
+          setError(e.message);
+        }
       } else {
         setError(
           "Failed to create booking. This time slot may already be taken.",
@@ -338,6 +348,7 @@ export const BookingsPage = () => {
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
                 onSelect={setSelectedTime}
+                refreshSignal={slotRefreshSignal}
               />
             </div>
           )}

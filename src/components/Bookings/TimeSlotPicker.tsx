@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiGet } from '../../lib/api';
 import { Clock, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 type TimeSlotPickerProps = {
   courtId: string;
-  selectedDate: Date | null;
+  selectedDate: Date | string | null;
   selectedTime: string | null; // this will store the start time like "07:00"
   onSelect: (time: string) => void;
+  refreshSignal?: number;
   selectedCoachId?: string | null;
   onCoachSelect?: (coachId: string | null) => void;
 };
@@ -19,6 +20,7 @@ type Coach = {
 };
 
 type Slot = { hour: number; label: string };
+type AvailabilityBooking = { start_time: string; end_time: string };
 
 const TIME_SLOTS: Slot[] = [
   { hour: 7.0, label: '7:00 AM - 8:30 AM' },
@@ -40,22 +42,30 @@ function hourToTimeString(hour: number) {
   return `${pad(h)}:${pad(m)}`;
 }
 
-export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, selectedCoachId, onCoachSelect }: TimeSlotPickerProps) => {
+function normalizeDateInput(date: Date | string | null): string | null {
+  if (!date) return null;
+  if (typeof date === 'string') {
+    const trimmed = date.trim();
+    if (!trimmed) return null;
+    // Keep existing YYYY-MM-DD values unchanged.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+    const parsed = new Date(trimmed);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().split('T')[0];
+  }
+  return Number.isNaN(date.getTime()) ? null : date.toISOString().split('T')[0];
+}
+
+export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, refreshSignal = 0, selectedCoachId, onCoachSelect }: TimeSlotPickerProps) => {
   const { t } = useTranslation();
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingCoaches, setLoadingCoaches] = useState(false);
 
-  useEffect(() => {
-    fetchBookedSlots();
-    fetchCoaches();
-  }, [courtId, selectedDate]);
+  const fetchBookedSlots = useCallback(async () => {
+    const dateString = normalizeDateInput(selectedDate);
+    if (!dateString) return;
 
-  const fetchBookedSlots = async () => {
-    if (!selectedDate) return;
-    
-    const dateString = selectedDate.toISOString().split('T')[0];
     setLoading(true);
     try {
       const res = await apiGet(`/bookings/availability?court_id=${encodeURIComponent(courtId)}&date=${encodeURIComponent(dateString)}`);
@@ -63,7 +73,7 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, 
       if (!json.success) throw new Error(json.message || 'Failed to fetch bookings');
 
       // Build a set of blocked slots based on overlapping with 90-minute bookings.
-      const bookings = (json.data || []).map((b: any) => ({ start: b.start_time, end: b.end_time }));
+      const bookings = ((json.data || []) as AvailabilityBooking[]).map((b) => ({ start: b.start_time, end: b.end_time }));
       const blocked = new Set<string>();
 
       for (const slot of TIME_SLOTS) {
@@ -71,7 +81,7 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, 
         const slotStart = new Date(`${dateString}T${slotTime}`);
         const slotEnd = new Date(slotStart.getTime() + 90 * 60 * 1000);
 
-        const overlaps = bookings.some((bk) => {
+        const overlaps = bookings.some((bk: { start: string; end: string }) => {
           const bStart = new Date(`${dateString}T${bk.start}`);
           const bEnd = new Date(`${dateString}T${bk.end}`);
           // overlap if slotStart < bEnd && slotEnd > bStart
@@ -87,9 +97,9 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, 
     } finally {
       setLoading(false);
     }
-  };
+  }, [courtId, selectedDate]);
 
-  const fetchCoaches = async () => {
+  const fetchCoaches = useCallback(async () => {
     setLoadingCoaches(true);
     try {
       const res = await apiGet('/coaches');
@@ -102,12 +112,20 @@ export const TimeSlotPicker = ({ courtId, selectedDate, selectedTime, onSelect, 
     } finally {
       setLoadingCoaches(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchBookedSlots();
+    fetchCoaches();
+  }, [fetchBookedSlots, fetchCoaches, refreshSignal]);
 
   const isSlotBooked = (time: string) => bookedSlots.includes(time);
   const isPastSlot = (time: string) => {
+    const dateString = normalizeDateInput(selectedDate);
+    if (!dateString) return false;
     const now = new Date();
-    const slotDate = new Date(`${selectedDate}T${time}`);
+    const slotDate = new Date(`${dateString}T${time}`);
+    if (Number.isNaN(slotDate.getTime())) return false;
     return slotDate < now;
   };
 
