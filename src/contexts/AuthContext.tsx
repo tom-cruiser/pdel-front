@@ -36,16 +36,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     (async () => {
       try {
         const dev = localStorage.getItem('dev_token');
+        console.debug('[Auth] Init: dev_token in localStorage:', dev ? `${dev.substring(0, 12)}...` : 'not found');
         if (dev && dev.startsWith('dev:')) {
+          console.debug('[Auth] Init: fetching profile with token');
           const res = await apiGet('/profiles/me');
           if (res.ok) {
             const body = await res.json();
             setUser({ id: body.data.id, email: body.data.email });
             setProfile(body.data as Profile);
+            console.debug('[Auth] Init: profile loaded successfully');
+          } else {
+            console.warn('[Auth] Init: failed to fetch profile, status:', res.status);
           }
+        } else {
+          console.debug('[Auth] Init: no valid dev_token found');
         }
       } catch (err) {
-        console.error('Auth initialization failed', err);
+        console.error('[Auth] Init failed:', err);
       } finally {
         setLoading(false);
       }
@@ -53,28 +60,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    console.debug('[Auth] signIn: attempting login for', email);
     const res = await apiPost('/auth/local-login', { email, password });
+    console.debug('[Auth] signIn: login response status:', res.status);
     
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.message || body.error || 'Login failed');
+      const errorMessage = body.message || body.error || 'Login failed';
+      console.error('[Auth] signIn: login failed:', errorMessage);
+      throw new Error(errorMessage);
     }
 
     const body = await res.json();
     
     if (body.data && body.data.token) {
+      console.debug('[Auth] signIn: storing token:', `${body.data.token.substring(0, 12)}...`);
       localStorage.setItem('dev_token', body.data.token);
+    } else {
+      console.warn('[Auth] signIn: no token in response data');
     }
     
+    console.debug('[Auth] signIn: fetching user profile');
     const meRes = await apiGet('/profiles/me');
     if (meRes.ok) {
       const meBody = await meRes.json();
+      console.debug('[Auth] signIn: profile retrieved successfully');
       setUser({ id: meBody.data.id, email: meBody.data.email });
       setProfile(meBody.data);
+    } else {
+      console.error('[Auth] signIn: failed to fetch profile, status:', meRes.status);
+      throw new Error('Failed to fetch user profile after login');
     }
   };
 
   const signUp = async (email: string, password: string, fullName: string, phone?: string) => {
+    console.debug('[Auth] signUp: attempting registration for', email);
     const res = await apiPost('/auth/register', {
       email,
       password,
@@ -84,14 +104,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.message || body.error || 'Registration failed');
+      const errorMessage = body.message || body.error || 'Registration failed';
+      console.error('[Auth] signUp: failed:', errorMessage);
+      throw new Error(errorMessage);
     }
 
     const body = await res.json();
-    return body.message || 'Registration successful';
+    const message = body.message || body?.data?.message || 'Registration successful';
+    console.debug('[Auth] signUp: success:', message);
+    return message;
   };
 
   const signOut = async () => {
+    console.debug('[Auth] signOut: clearing token and user');
     localStorage.removeItem('dev_token');
     setUser(null);
     setProfile(null);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LogIn } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { apiPost } from '../../lib/api';
 
 export const LoginForm = ({ onToggle }: { onToggle: () => void }) => {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ export const LoginForm = ({ onToggle }: { onToggle: () => void }) => {
   const [showForgot, setShowForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotMessage, setForgotMessage] = useState<string | null>(null);
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
   const { t } = useTranslation();
@@ -32,20 +34,23 @@ export const LoginForm = ({ onToggle }: { onToggle: () => void }) => {
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotMessage(null);
+    if (forgotSubmitting) return;
+    setForgotSubmitting(true);
     try {
-      const res = await fetch('/api/auth/request-password-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail || email }),
+      const res = await apiPost('/auth/request-password-reset', {
+        email: forgotEmail || email,
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setForgotMessage(body?.message || 'Failed to request password reset');
         return;
       }
-      setForgotMessage('If that email exists we sent a reset link');
+      const body = await res.json().catch(() => ({}));
+      setForgotMessage(body?.message || 'If that email exists we sent a reset link');
     } catch (e: any) {
       setForgotMessage(e?.message || 'Failed to request password reset');
+    } finally {
+      setForgotSubmitting(false);
     }
   };
 
@@ -125,7 +130,13 @@ export const LoginForm = ({ onToggle }: { onToggle: () => void }) => {
                 className="w-full px-3 py-2 border rounded-lg"
               />
               <div className="flex items-center justify-center space-x-3">
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">Send</button>
+                <button
+                  type="submit"
+                  disabled={forgotSubmitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-60"
+                >
+                  {forgotSubmitting ? 'Sending...' : 'Send'}
+                </button>
                 <button type="button" onClick={() => setShowForgot(false)} className="px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
               </div>
               {forgotMessage && <p className="text-sm text-gray-600 mt-2">{forgotMessage}</p>}

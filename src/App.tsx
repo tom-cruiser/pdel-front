@@ -9,15 +9,13 @@ import { ContactPage } from './pages/ContactPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 import ChatPage from './pages/ChatPage';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ConfirmEmail } from './pages/ConfirmEmail';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ResetPassword } from './pages/ResetPassword';
 import { PublicNotePage } from './pages/PublicNotePage';
 
 function App() {
   const { user, profile, loading } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
-  const location = useLocation();
 
   if (loading) {
     return (
@@ -31,23 +29,31 @@ function App() {
   }
 
   if (!user) {
-    if (location.pathname === '/note') {
-      return (
-        <Routes>
-          <Route path="/note" element={<PublicNotePage />} />
-          <Route path="*" element={<Navigate to="/note" replace />} />
-        </Routes>
-      );
-    }
-
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center p-4">
-        {showLogin ? (
-          <LoginForm onToggle={() => setShowLogin(false)} />
-        ) : (
-          <SignUpForm onToggle={() => setShowLogin(true)} />
-        )}
-      </div>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <div className="min-h-screen bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center p-4">
+              {showLogin ? (
+                <LoginForm onToggle={() => setShowLogin(false)} />
+              ) : (
+                <SignUpForm onToggle={() => setShowLogin(true)} />
+              )}
+            </div>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <div className="min-h-screen bg-gradient-to-br from-blue-500 to-green-500 p-4">
+              <ResetPassword />
+            </div>
+          }
+        />
+        <Route path="/note" element={<PublicNotePage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     );
   }
 
@@ -61,7 +67,6 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/note" element={<PublicNotePage />} />
-        <Route path="/confirm-email" element={<ConfirmEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="/admin"

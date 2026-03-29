@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { apiGet, apiPatch } from '../lib/api';
+import { apiGet, apiPatch, apiPut } from '../lib/api';
 import { User, Calendar, CheckCircle, XCircle, Edit, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +14,12 @@ export const ProfilePage = () => {
   const [phone, setPhone] = useState(profile?.phone || '');
   const [saving, setSaving] = useState(false);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -55,23 +61,68 @@ export const ProfilePage = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-          phone: phone || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
+      const res = await apiPut('/profiles/me', {
+        full_name: fullName,
+        phone: phone || null,
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body?.success) {
+        throw new Error(body?.message || 'Failed to update profile');
+      }
       setEditing(false);
       window.location.reload();
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile');
+      alert(`Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMessage(null);
+    setPasswordError(null);
+
+    if (!currentPassword || !newPassword) {
+      setPasswordError('Current password and new password are required');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const res = await apiPut('/profiles/me/password', {
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      });
+      const body = await res.json().catch(() => ({}));
+
+      if (!res.ok || !body?.success) {
+        setPasswordError(body?.message || 'Failed to update password');
+        return;
+      }
+
+      setPasswordMessage(body?.message || 'Password updated successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      setPasswordError(
+        error instanceof Error ? error.message : 'Failed to update password'
+      );
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -208,6 +259,57 @@ export const ProfilePage = () => {
                   )}
                 </div>
               )}
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg p-6 mt-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Change Password</h3>
+              <form onSubmit={handleChangePassword} className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    placeholder="Enter current password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    placeholder="At least 8 characters"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    placeholder="Repeat new password"
+                  />
+                </div>
+                {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
+                {passwordMessage && <p className="text-sm text-green-600">{passwordMessage}</p>}
+                <button
+                  type="submit"
+                  disabled={changingPassword}
+                  className="w-full bg-gray-900 text-white py-2 px-4 rounded-lg font-semibold hover:bg-black transition disabled:opacity-50"
+                >
+                  {changingPassword ? 'Updating...' : 'Update Password'}
+                </button>
+              </form>
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg p-6 mt-6">
